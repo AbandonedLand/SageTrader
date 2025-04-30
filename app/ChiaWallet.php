@@ -4,18 +4,28 @@ namespace App;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\Storage;
 
 class ChiaWallet
 {
     protected $client;
     public function __construct()
     {
-        $walletConfig = [
-            'base_uri' => 'https://localhost:9257', // Sage Wallet
-            'verify' => false,
-            'cert' => \Illuminate\Support\Facades\Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.crt'), // Sage Wallet
-            'ssl_key' => \Illuminate\Support\Facades\Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.key') // Sage Wallet
-        ];
+        if(Storage::disk('local')->exists('wallet.crt') && Storage::disk('local')->exists('wallet.key')){
+            $walletConfig = [
+                'base_uri' => 'https://localhost:9257', // Sage Wallet
+                'verify' => false,
+                'cert'=>Storage::disk('local')->path('wallet.crt'),
+                'ssl_key'=>Storage::disk('local')->path('wallet.key')
+            ];
+        } else {
+            $walletConfig = [
+                'base_uri' => 'https://localhost:9257', // Sage Wallet
+                'verify' => false,
+                'cert' => \Illuminate\Support\Facades\Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.crt'), // Sage Wallet
+                'ssl_key' => \Illuminate\Support\Facades\Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.key') // Sage Wallet
+            ];
+        }
         $this->client = new Client($walletConfig);
     }
 
@@ -36,8 +46,9 @@ class ChiaWallet
         return json_decode($stream, $returnAssoc);
     }
 
-    public function get_sync_status(){
-        return $this->post('get_sync_status',[],true);
+    public static function get_sync_status(){
+        $wallet = new ChiaWallet();
+        return $wallet->post('get_sync_status',[],true);
     }
 
     public static function getFingerprint(){
@@ -50,6 +61,13 @@ class ChiaWallet
         return 'Logged Out';
     }
 
+
+    public static function getOffers(){
+        $wallet = new ChiaWallet();
+        return $wallet->post('/get_offers',[],true);
+
+    }
+
     public static function login($fingerprint){
         $wallet = new ChiaWallet();
         $login = $wallet->post('/login', ['fingerprint' => $fingerprint], true);
@@ -60,5 +78,30 @@ class ChiaWallet
         $wallet = new ChiaWallet();
         $cats = $wallet->post('/get_cats', [], true);
         return $cats['cats'];
+    }
+
+    public static function getCat($asset_id){
+        $wallet = new ChiaWallet();
+        return $wallet->post('/get_cat', ['asset_id' => $asset_id], true)['cat'];
+    }
+
+    public static function makeOffer(array $requested_assets, array $offered_assets, int $fee = 0, ?string $receiver_address = null, ?int $expires_at_second = null, ?bool $auto_import = true)
+    {
+        $offer = [
+            'requested_assets' => $requested_assets,
+            'offered_assets' => $offered_assets,
+            'fee' => $fee,
+            'auto_import' => $auto_import
+        ];
+        if($expires_at_second){
+            $offer['expires_at_time'] = $expires_at_second;
+        }
+        if($receiver_address){
+            $offer['receiver_address'] = $receiver_address;
+        }
+
+        $wallet = new ChiaWallet();
+        return $wallet->post('/make_offer', $offer, true);
+
     }
 }

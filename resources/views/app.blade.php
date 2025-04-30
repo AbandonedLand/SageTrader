@@ -4,21 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     @livewireStyles
-
-    @vite(['resources/css/app.css','resources/js/app.js'])
+    @yield('head')
+    <title>SageTrader</title>
+    <link rel="stylesheet" href="/css/adminlte.css">
+    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
 </head>
-<body class="h-screen">
-<div class="grid grid-cols-auto w-screen h-screen bg-gray-300">
-    <div class="col-span-2">
-        @include('layout.nav')
-    </div>
-    <div class="col-span-9 col-start-3 px-8 py-4">
+<body>
     @yield('content')
-    </div>
-</div>
-
-
-@livewireScripts
+    @include('demo')
+    <script src="/plugins/jquery/jquery.min.js"></script>
+    <script src="/js/bootstrap.bundle.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/js/adminlte.js"></script>
+    @livewireScripts
 
 </body>
 </html>

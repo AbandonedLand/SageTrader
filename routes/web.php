@@ -3,15 +3,24 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    try{
+        $status = \App\ChiaWallet::get_sync_status();
+        if($status){
+            $wallet = new \App\ChiaWallet();
+            $xch = $wallet->get_sync_status();
+            $cats = collect($wallet->post('/get_cats',[],true)['cats'])->sortBy('balance',1,1);
+            return view('welcome')->with(['cats'=>$cats,'xch'=>$xch]);
 
-    return view('welcome');
+        }
+    } catch(\Exception $e){
+        return "failed to connect to sage rpc.";
+    }
+
+
 });
 
 Route::get('/dashboard', function () {
-    $wallet = new \App\ChiaWallet();
-    $xch = $wallet->get_sync_status();
-    $cats = $wallet->post('/get_cats',[],false)->cats;
-    return view('dashboard')->with(['cats'=>$cats,'xch'=>$xch]);
+
 });
 
 
@@ -20,9 +29,13 @@ Route::get('/trade', function () {
 
 });
 
-Route::get('/liquidity',function(){
-    return view('liquidity');
-});
+Route::get('/liquidity',[\App\Http\Controllers\LiquidityController::class,'index']);
+Route::get('/liquidity/create',[\App\Http\Controllers\LiquidityController::class,'create']);
+Route::get('/liquidity/tibet',[\App\Http\Controllers\LiquidityController::class,'tibet']);
+
+
+
+
 
 Route::get('/bots', function(){
     return view('bots');
@@ -38,6 +51,6 @@ Route::get('/logout', function() {
 Route::get('/login/{fingerprint}', function($fingerprint) {
     $wallet = new \App\ChiaWallet();
     $wallet->post('/login',['fingerprint'=>(int)$fingerprint],true);
-    return redirect('/dashboard');
+    return redirect('/');
 });
 

@@ -10,8 +10,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "almasaeed2010/adminlte": "~3.2",
+        "jeroennoten/laravel-adminlte": "^3.15",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "laravel/ui": "^4.6",
         "livewire/livewire": "^3.6",
         "nativephp/electron": "^1.0"
     },
