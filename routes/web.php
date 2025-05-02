@@ -13,15 +13,21 @@ Route::get('/', function () {
 
         }
     } catch(\Exception $e){
-        return "failed to connect to sage rpc.";
+        return view('error');
     }
 
-
 });
 
-Route::get('/dashboard', function () {
-
+Route::get('/tibet', function () {
+    return view('tibet');
 });
+Route::get('/tibet/{asset_id}', function ($asset_id) {
+    return view('tibet')->with(['asset_id'=>$asset_id]);
+});
+
+Route::get('/market/market',[\App\Http\Controllers\marketController::class,'market'])->name('market');
+
+Route::get('/orders',[\App\Http\Controllers\marketController::class,'orders'])->name('orders');
 
 
 

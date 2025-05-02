@@ -101,7 +101,11 @@ class ChiaWallet
         }
 
         $wallet = new ChiaWallet();
-        return $wallet->post('/make_offer', $offer, true);
+        $createdOffer =  $wallet->post('/make_offer', $offer, true);
+        if($createdOffer){
+            return $createdOffer;
+        }
+        return false;
 
     }
 }

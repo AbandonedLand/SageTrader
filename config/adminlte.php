@@ -156,7 +156,7 @@ return [
     'layout_boxed' => false,
     'layout_fixed_sidebar' => true,
     'layout_fixed_navbar' => false,
-    'layout_fixed_footer' => null,
+    'layout_fixed_footer' => false,
     'layout_dark_mode' => null,
 
     /*
@@ -309,15 +309,66 @@ return [
             'text' => 'Wallet',
             'url' => '/',
             'icon' => 'fas fa-wallet',
+            'icon_color'=>'success'
         ],
+        [
+            'header' => 'Trade',
+            'class' => 'text-xl'
+        ],
+        [
+            'text' => 'Market Order',
+            'url' => '/market/market',
+            'icon_color'=>'success'
+        ],
+        [
+            'text' => 'Limit Order',
+            'url' => '/market/limit',
+            'icon_color'=>'danger'
+        ],
+        [
+            'text' => 'Stop Order',
+            'url' => '/market/stop',
+            'icon_color'=>'danger'
+        ],
+        [
+            'text' => 'Trailing Stop',
+            'url' => '/market/trailing',
+            'icon_color'=>'danger'
+        ],
+        ['header' => 'Strategies'],
+        [
+            'text' => 'Grid Trading',
+            'url' => '/market/grid',
+            'icon_color'=>'danger'
+
+        ],
+        [
+            'text' => 'DCA Bot',
+            'url' => '/market/dca',
+            'icon_color'=>'danger'
+        ],
+
         ['header' => 'Liquidity'],
         [
             'text' => 'TibetSwap',
             'url' => '/tibet',
+            'icon_color'=>'danger'
+        ],
+        ['header' => 'Reporting'],
+        [
+            'text' => 'Orders',
+            'url' => '/orders',
+            'icon_color'=>'success'
         ],
         [
-            'text' => 'Liquidity Bot',
-            'url' => '/liquidity',
+            'text' => 'Reports',
+            'url' => '/reports',
+            'icon_color'=>'danger'
+        ],
+        [
+            'text' => 'Transactions',
+            'url' => '/transactions',
+            'icon_color'=>'danger'
         ]
 
     ],
