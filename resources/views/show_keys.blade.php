@@ -1,17 +1,34 @@
-@extends('app')
+@extends('adminlte::page')
 
+
+@section('content_header')
+    <h2>Chia Fingerprints</h2>
+@endsection
 @section('content')
-<div class="grid grid-cols-12 gap-4">
-    @foreach($keys as $key)
-        <div class="col-span-4">
-            <div class="bg-white shadow-md rounded-md p-4">
-                <a href="/login/{{$key->fingerprint}}">
-                <h1 class="text-xl font-bold mb-2">{{$key->name}}</h1>
-                <p class="text-sm">{{$key->fingerprint}}</p>
-                </a>
-            </div>
-        </div>
-    @endforeach
+    <div class="card">
+
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Fingerprint</th>
+                <th scope="col">Name</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($keys as $key)
+                <tr>
+                    <td>{{$key->fingerprint}}</td>
+                    <td>{{$key->name}}</td>
+                    <td>
+                        <a href="/login/{{$key->fingerprint}}" class="btn btn-success">Login</a>
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
 
 
 </div>

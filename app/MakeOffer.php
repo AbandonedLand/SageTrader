@@ -16,6 +16,6 @@ class MakeOffer
 
     public function __construct()
     {
-        //
+        
     }
 }
