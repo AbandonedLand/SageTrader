@@ -93,7 +93,7 @@
                         {{\Carbon\Carbon::parse($dca->next_run)->diffForHumans()}}
                     </td>
                     <td>
-                        <a href="/orders/dca/{{$dca->id}}">Show Orders</a>
+                        <button class="btn btn-warning btn-xs" wire:click="execute({{$dca->id}})">Run Early</button>
                     </td>
                 </tr>
             @endforeach

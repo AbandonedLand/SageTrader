@@ -65,20 +65,21 @@ class dca extends Model
 
 
         $quote = \App\Dexie::getDexieQuoteForAsset($this->asset_id,$this->amount,$this->buy_sell,true);
+
         if(!$quote){
             $this->msg('Failed to get quote from dexie');
             return false;
         }
         if($this->price && $this->price_lt_gt){
             if($this->price_lt_gt == '>'){
-                if(! ($quote['price'] > $this->price)){
+                if(! (floatval($quote['price']) > floatval($this->price))){
                     $this->msg('Quote Price:'.$quote['price'].' is less than '. $this->price.'. Not executing this run.');
                     $this->setNextRuntime();
                     return false;
                 }
             }
             if($this->price_lt_gt == '<'){
-                if(! ($quote['price'] < $this->price)){
+                if(! floatval(($quote['price']) < floatval($this->price))){
                     $this->msg('Quote Price:'.$quote['price'].' is greater than '. $this->price.'. Not executing this run.');
                     $this->setNextRuntime();
                     return false;

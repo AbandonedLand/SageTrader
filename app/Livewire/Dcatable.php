@@ -15,6 +15,13 @@ class Dcatable extends Component
     }
 
 
+    public function execute($id){
+        $dca = \App\Models\dca::find($id);
+        $dca->next_run = \Carbon\Carbon::now();
+        $dca->save();
+        $dca->execute();
+    }
+
     public function updateDCAs(){
         if($this->active){
             $this->dcas = \App\Models\dca::where('is_active',true)->get();
