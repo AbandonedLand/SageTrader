@@ -61,13 +61,13 @@ class Dexie
 
         if($response['success'] === true){
             if($direction==='buy'){
-                $response['price'] = number_format(($response['quote']['to_amount']/1000)/($response['quote']['from_amount']/1000000000000),3);
+                $response['price'] = ($response['quote']['to_amount']/1000)/($response['quote']['from_amount']/1000000000000);
                 $response['xch_is_input'] = true;
                 $response['donation_fee'] = intval(round($response['quote']['from_amount'] * ($response['quote']['combination_fee'] / 10000) ,0));
                 $response['offer']['offered'] = ['XCH'=>$response['quote']['from_amount']];
                 $response['offer']['requested'] = [$response['quote']['to'] => $response['quote']['to_amount']];
             } else {
-                $response['price'] = number_format(($response['quote']['from_amount']/1000)/($response['quote']['to_amount']/1000000000000),3);
+                $response['price'] = ($response['quote']['from_amount']/1000)/($response['quote']['to_amount']/1000000000000);
                 $response['xch_is_input'] = false;
                 $response['donation_fee'] = intval(round($response['quote']['to_amount'] * ($response['quote']['combination_fee'] / 10000) ,0));
                 $response['offer']['requested'] = ['XCH'=>$response['quote']['to_amount']];
