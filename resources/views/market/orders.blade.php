@@ -15,8 +15,9 @@
                 <thead>
                     <tr>
                         <th>Order Type</th>
-                        <th>Requested Asset</th>
                         <th>Offered Asset</th>
+                        <th>Requested Asset</th>
+                        <th>Price</th>
                         <th>Market Fee</th>
                         <th>Status</th>
                         <th></th>
@@ -29,14 +30,16 @@
                             <td>
                                 {{$order->initiated_by}}
                             </td>
-                            <td class="">
-                                {{$order->requested_code=='XCH' ? number_format($order->requested_amount / 1000000000000,12) : number_format($order->requested_amount / 1000,3)}}
-                                <img src="https://icons.dexie.space/{{$order->requested_asset}}.webp" class="img-size-32" title="{{$order->requested_code}}">
-                            </td>
+
                             <td class="">
                                 {{$order->offered_code=='XCH' ? number_format($order->offered_amount / 1000000000000,12) : number_format($order->offered_amount / 1000,3)}}
                                 <img src="https://icons.dexie.space/{{$order->offered_asset}}.webp" class="img-size-32" title="{{$order->offered_code}}">
                             </td>
+                            <td class="">
+                                {{$order->requested_code=='XCH' ? number_format($order->requested_amount / 1000000000000,12) : number_format($order->requested_amount / 1000,3)}}
+                                <img src="https://icons.dexie.space/{{$order->requested_asset}}.webp" class="img-size-32" title="{{$order->requested_code}}">
+                            </td>
+                            <td>{{number_format($order->price,3)}}</td>
                             <td>{{number_format($order->market_fee_paid / 1000000000000,12)}}</td>
                             <td>{{$order->status}}</td>
                             <td>@if($order->dexie_id)

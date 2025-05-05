@@ -16,6 +16,7 @@ class TibetSwap extends Component
     #[Validate('required')]
     public $selectedAsset;
 
+
     public $alltokens;
     public bool $is_buy;
     public bool $is_offered;
@@ -49,7 +50,6 @@ class TibetSwap extends Component
 
     public function selectAsset(){
         $this->showAssets = true;
-
     }
 
     public function setAsset($asset_id){
@@ -102,12 +102,11 @@ class TibetSwap extends Component
     public function takeOffer(){
         if($this->dexieOffer){
             $order = \App\Models\Order::fromDexieQuote($this->dexieOffer,'MarketOrder');
-
-            $this->response = \App\Dexie::submitMarketOrder($order);
-            if($this->response){
-                return redirect('/orders/'.$order->id);
+            $order->createSageOffer();
+            $order->submitOrder();
+            if($order->dexie_id){
+                return redirect('/orders');
             }
-
         }
         return redirect('/market/market');
     }

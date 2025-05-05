@@ -18,6 +18,9 @@ Route::get('/', function () {
 
 });
 
+Route::get('/info/{page}', function($page){
+    return view('info.'.$page);
+});
 Route::get('/tibet', function () {
     return view('tibet');
 });
@@ -26,10 +29,17 @@ Route::get('/tibet/{asset_id}', function ($asset_id) {
 });
 
 Route::get('/market/market',[\App\Http\Controllers\marketController::class,'market'])->name('market');
+Route::get('/market/dca',[\App\Http\Controllers\marketController::class,'dca'])->name('dca');
+Route::get('/market/dca/{dca}',[\App\Http\Controllers\marketController::class,'view_dca'])->name('view_dca');
+
+
 
 Route::get('/orders',[\App\Http\Controllers\marketController::class,'orders'])->name('orders');
 
 
+Route::get('/soon',function(){
+    return view('soon');
+});
 
 Route::get('/trade', function () {
 
@@ -41,7 +51,18 @@ Route::get('/liquidity/tibet',[\App\Http\Controllers\LiquidityController::class,
 
 
 
+Route::get('sync_dexie',function(){
+   $cats = \App\Dexie::getDexieCatAssets();
 
+   foreach($cats as $cat) {
+       $test = \App\Models\Asset::where('asset_id',$cat['id'])->first();
+       if(!$test){
+           \App\Models\Asset::create(['asset_id' => $cat['id'], 'name' => $cat['name'], 'ticker' => $cat['code']]);
+       }
+
+   }
+   return redirect('/');
+});
 
 Route::get('/bots', function(){
     return view('bots');

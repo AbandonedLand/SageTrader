@@ -19,12 +19,23 @@ class ChiaWallet
                 'ssl_key'=>Storage::disk('local')->path('wallet.key')
             ];
         } else {
-            $walletConfig = [
-                'base_uri' => 'https://localhost:9257', // Sage Wallet
-                'verify' => false,
-                'cert' => \Illuminate\Support\Facades\Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.crt'), // Sage Wallet
-                'ssl_key' => \Illuminate\Support\Facades\Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.key') // Sage Wallet
-            ];
+            if(PHP_OS == 'Linux'){
+
+                $walletConfig = [
+                    'base_uri' => 'https://localhost:9257', // Sage Wallet
+                    'verify' => false,
+                    'cert' => Storage::disk('user_home')->path('./local/share/com.rigidnetwork.sage/ssl/wallet.crt'), // Sage Wallet
+                    'ssl_key' => Storage::disk('user_home')->path('./local/share/com.rigidnetwork.sage/ssl/wallet.key') // Sage Wallet
+                ];
+            } else {
+                // Assuming Windows Location of Sage SSL Certs
+                $walletConfig = [
+                    'base_uri' => 'https://localhost:9257', // Sage Wallet
+                    'verify' => false,
+                    'cert' => Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.crt'), // Sage Wallet
+                    'ssl_key' => Storage::disk('user_home')->path('\AppData\Roaming\com.rigidnetwork.sage\ssl\wallet.key') // Sage Wallet
+                ];
+            }
         }
         $this->client = new Client($walletConfig);
     }
@@ -65,6 +76,11 @@ class ChiaWallet
     public static function getOffers(){
         $wallet = new ChiaWallet();
         return $wallet->post('/get_offers',[],true);
+
+    }
+    public static function getOffer($offer_id){
+        $wallet = new ChiaWallet();
+        return $wallet->post('/get_offer',['offer_id'=>$offer_id],true);
 
     }
 

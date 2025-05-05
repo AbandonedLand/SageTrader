@@ -58,52 +58,47 @@ class Dexie
         }
 
         $response =  Http::get($uri)->json();
-        if($direction==='buy'){
-            $response['xch_is_input'] = true;
-            $response['donation_fee'] = intval(round($response['quote']['from_amount'] * ($response['quote']['combination_fee'] / 10000) ,0));
-            $response['offer']['offered'] = ['XCH'=>$response['quote']['from_amount']];
-            $response['offer']['requested'] = [$response['quote']['to'] => $response['quote']['to_amount']];
-        } else {
-            $response['xch_is_input'] = false;
-            $response['donation_fee'] = intval(round($response['quote']['to_amount'] * ($response['quote']['combination_fee'] / 10000) ,0));
-            $response['offer']['requested'] = ['XCH'=>$response['quote']['to_amount']];
-            $response['offer']['offered'] = [$response['quote']['from']=>$response['quote']['from_amount']];
-        }
 
-        return $response;
+        if($response['success'] === true){
+            if($direction==='buy'){
+                $response['price'] = number_format(($response['quote']['to_amount']/1000)/($response['quote']['from_amount']/1000000000000),3);
+                $response['xch_is_input'] = true;
+                $response['donation_fee'] = intval(round($response['quote']['from_amount'] * ($response['quote']['combination_fee'] / 10000) ,0));
+                $response['offer']['offered'] = ['XCH'=>$response['quote']['from_amount']];
+                $response['offer']['requested'] = [$response['quote']['to'] => $response['quote']['to_amount']];
+            } else {
+                $response['price'] = number_format(($response['quote']['from_amount']/1000)/($response['quote']['to_amount']/1000000000000),3);
+                $response['xch_is_input'] = false;
+                $response['donation_fee'] = intval(round($response['quote']['to_amount'] * ($response['quote']['combination_fee'] / 10000) ,0));
+                $response['offer']['requested'] = ['XCH'=>$response['quote']['to_amount']];
+                $response['offer']['offered'] = [$response['quote']['from']=>$response['quote']['from_amount']];
+            }
+
+            return $response;
+        }
+        return false;
+
     }
 
-    public static function submitMarketOrder(\App\Models\Order $order){
+    public static function submitMarketOrder($offer){
+        $payload = [
+            'fee_destination' =>'xch1xtn62vckj2dmpdlttewfgpsz6zluw8jpj57v308whcu5ty86xhlq3a0h0e',
+            'offer'=>$offer,
+        ];
+        $uri = 'https://api.dexie.space/v1/swap';
+        return Http::post($uri, $payload)->json();
 
-        $offer = $order->createSageOffer();
-        if($offer) {
-            $order->status = 'offerCreated';
-            $order->offer_id = $offer['offer_id'];
-            $order->offer = $offer['offer'];
-            $order->save();
+    }
 
-            $payload = [
-                'fee_destination' =>'xch1xtn62vckj2dmpdlttewfgpsz6zluw8jpj57v308whcu5ty86xhlq3a0h0e',
-                'offer'=>$offer['offer'],
-            ];
-
-            $uri = 'https://api.dexie.space/v1/swap';
-            $response = Http::post($uri, $payload)->json();
-            if($response['success']){
-                $order->dexie_id = $response['id'];
-                $order->status = 'submitted_to_dexie';
-                $order->save();
-
-            } else {
-                $order->status = 'failed_to_submit_dexie';
-                $order->save();
-            }
-            return $response;
-
+    public static function getDexieOffer($dexie_id){
+        $uri = 'https://api.dexie.space/v1/offers/'.$dexie_id;
+        $response =  Http::get($uri)->json();
+        if($response['success'] === true){
+            $offer = $response['offer'];
+            return $offer;
         }
-        $order->status = 'failed_to_create_offer';
-        $order->save();
         return false;
     }
+
 
 }

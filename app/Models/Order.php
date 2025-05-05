@@ -36,11 +36,24 @@ class Order extends Model
 
     }
 
+    public function orderable(){
+        return $this->morphTo();
+    }
+
     public function requested(){
         return $this->belongsTo(Asset::class, 'requested_asset','asset_id');
     }
     public function offfered(){
         return $this->belongsTo(Asset::class, 'offered_asset','asset_id');
+    }
+
+    public function log(){
+        return $this->morphMany(Log::class, 'logable');
+    }
+
+    public function msg($message){
+        $log = \App\Models\log::create(['message' => $message]);
+        $this->log()->save($log);
     }
 
     public static function fromDexieQuote($quote,$initiated_by){
@@ -99,9 +112,80 @@ class Order extends Model
                 'nfts'=>[]
             ];
         }
+        $this->msg("Attempting to make offer for this order");
+        $offer =  \App\ChiaWallet::makeOffer($requested,$offered,$fee);
+        if($offer){
+            $this->status = 'offerCreated';
+            $this->offer_id = $offer['offer_id'];
+            $this->offer = $offer['offer'];
+            $this->save();
+            $this->msg("Offer with id: ".$offer['offer_id']." created");
+            return true;
+        } else {
+            $this->status = 'failed_to_create_offer';
+            $this->save();
+            $this->msg("Failed to create offer");
+            return false;
+        }
 
-        return \App\ChiaWallet::makeOffer($requested,$offered,$fee);
+    }
 
+    public function submitMarketOrder(){
+        $dexieResponse = \App\Dexie::submitMarketOrder($this->offer);
+        if($dexieResponse['success']){
+            $this->dexie_id = $dexieResponse['id'];
+            $this->status = 'submitted_to_dexie';
+            $this->save();
+            return true;
+
+        } else {
+            $this->status = 'failed_to_submit_dexie';
+            $this->save();
+            return false;
+        }
+    }
+
+    public static function checkOrders(){
+        $orders = \App\Models\order::where('status','submitted_to_dexie')->get();
+
+        if($orders->count() > 0){
+            foreach($orders as $order){
+                $order->checkStatus();
+            }
+        }
+    }
+
+    public function checkStatus(){
+        $status = \App\Dexie::getDexieOffer($this->dexie_id);
+
+        if($status['status']==4){
+            $this->status = "Completed";
+            $this->save();
+            $this->msg("This order has been completed");
+        }
+        if($status['status']==3){
+            $this->status = "Cancelled";
+            $this->save();
+            $this->msg("This order has been cancelled");
+        }
+        if($status['status']==6){
+            $this->status = "Expired";
+            $this->save();
+            $this->msg("The order has expired");
+        }
+    }
+
+    public function submitOrder(){
+        if($this->initiated_by === "DCABot"){
+            $this->msg("Submitting offer to DexieSwap");
+            return $this->submitMarketOrder();
+        }
+        if($this->initiated_by === "MarketOrder"){
+            $this->msg("Submitting offer to MarketOrder");
+            return $this->submitMarketOrder();
+        }
+
+        return false;
     }
 
 }

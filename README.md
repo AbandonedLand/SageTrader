@@ -1,4 +1,32 @@
-# SageTrader (Name will change)
+# SageTrader (Name may change)
+
+# Install 
+Before you install please realize that this is in early development.  There is a chance this will make trades you do not wish to make. 
+
+That being said:
+
+## Requirements to build before released:
+* Git
+* Php 8.3+
+* Composer
+
+
+
+```powershell
+git clone https://github.com/AbandonedLand/SageTrader.git
+cd .\SageTrader
+composer install
+
+cp .\.env.example .\.env
+php artisan key:generate
+
+```
+
+Launch the app with:
+```
+php artisan native:serve
+
+```
 
 ## Purpose
 This application works with the [Sage Wallet](https://github.com/xch-dev/sage) to make trading easier.

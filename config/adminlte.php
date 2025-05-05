@@ -299,6 +299,7 @@ return [
     */
 
     'menu' => [
+
         [
             'text'=>'LogOut',
             'icon' => 'fa fa-sign-out-alt',
@@ -322,36 +323,36 @@ return [
         ],
         [
             'text' => 'Limit Order',
-            'url' => '/market/limit',
+            'url' => '/soon',
             'icon_color'=>'danger'
         ],
         [
             'text' => 'Stop Order',
-            'url' => '/market/stop',
+            'url' => '/soon',
             'icon_color'=>'danger'
         ],
         [
             'text' => 'Trailing Stop',
-            'url' => '/market/trailing',
+            'url' => '/soon',
             'icon_color'=>'danger'
         ],
         ['header' => 'Strategies'],
         [
             'text' => 'Grid Trading',
-            'url' => '/market/grid',
+            'url' => '/soon',
             'icon_color'=>'danger'
 
         ],
         [
             'text' => 'DCA Bot',
             'url' => '/market/dca',
-            'icon_color'=>'danger'
+            'icon_color'=>'success'
         ],
 
         ['header' => 'Liquidity'],
         [
             'text' => 'TibetSwap',
-            'url' => '/tibet',
+            'url' => '/soon',
             'icon_color'=>'danger'
         ],
         ['header' => 'Reporting'],
@@ -362,12 +363,12 @@ return [
         ],
         [
             'text' => 'Reports',
-            'url' => '/reports',
+            'url' => '/soon',
             'icon_color'=>'danger'
         ],
         [
             'text' => 'Transactions',
-            'url' => '/transactions',
+            'url' => '/soon',
             'icon_color'=>'danger'
         ]
 
