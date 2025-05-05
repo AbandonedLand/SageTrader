@@ -51,6 +51,15 @@ class dca extends Model
             return false;
         }
 
+        if($this->max_amount && $this->current_amount){
+            if($this->current_amount >= $this->max_amount){
+                $this->msg('Maximum amount reached for this DCA bot.  Deactivating bot.');
+                $this->is_active = 0;
+                $this->save();
+                return false;
+            }
+        }
+
         if(!$this->is_active){
             $this->msg('Attempted to run inactive DCA bot');
             return false;
