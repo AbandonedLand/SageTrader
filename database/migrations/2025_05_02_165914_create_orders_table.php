@@ -25,7 +25,11 @@ return new class extends Migration
             $table->string('offer')->nullable();
             $table->string('offer_id')->nullable();
             $table->string('dexie_id')->nullable();
-            $table->string('status')->default('pending');
+            $table->boolean('is_created')->nullable();
+            $table->boolean('is_submitted')->default(false);
+            $table->boolean('is_cancelled')->default(false);
+            $table->boolean('is_filled')->default(false);
+            $table->string('previous_required_offer')->nullable();
             $table->string('initiated_by');
             $table->timestamps();
         });

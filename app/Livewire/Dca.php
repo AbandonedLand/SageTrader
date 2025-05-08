@@ -44,7 +44,7 @@ class Dca extends Component
         $this->time = 60;
         $this->is_buy = true;
         $this->showAssets = false;
-        $this->alltokens = \App\Dexie::getDexieSwapAssets()['tokens'];
+        $this->alltokens = \App\Models\Asset::where('can_dexie_swap',true)->get();
         $this->showform = false;
         $this->dcas = \App\Models\dca::where('is_active', 1)->get();
     }
@@ -123,7 +123,7 @@ class Dca extends Component
     }
     public function setAsset($asset_id){
         $this->showAssets = false;
-        $this->asset = \App\Dexie::getDexieAsset($asset_id);
+        $this->asset = \App\Models\Asset::where('asset_id',$asset_id)->first();
         $this->asset_id = $asset_id;
 
     }

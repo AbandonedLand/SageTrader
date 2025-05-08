@@ -27,4 +27,6 @@ class marketController extends Controller
     public function view_dca(\App\Models\dca $dca){
         return view('market.view_dca')->with('dca', $dca);
     }
+
+
 }

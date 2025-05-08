@@ -32,9 +32,10 @@ Route::get('/market/market',[\App\Http\Controllers\marketController::class,'mark
 Route::get('/market/dca',[\App\Http\Controllers\marketController::class,'dca'])->name('dca');
 Route::get('/market/dca/{dca}',[\App\Http\Controllers\marketController::class,'view_dca'])->name('view_dca');
 
+Route::get('/market/grid',\App\Livewire\GridBot::class);
 
-
-Route::get('/orders',[\App\Http\Controllers\marketController::class,'orders'])->name('orders');
+Route::get('/orders',[\App\Http\Controllers\OrderController::class,'index']);
+Route::get('/order/{id}',\App\Livewire\Order::class);
 
 
 Route::get('/soon',function(){
@@ -51,17 +52,12 @@ Route::get('/liquidity/tibet',[\App\Http\Controllers\LiquidityController::class,
 
 
 
-Route::get('sync_dexie',function(){
-   $cats = \App\Dexie::getDexieCatAssets();
-
-   foreach($cats as $cat) {
-       $test = \App\Models\Asset::where('asset_id',$cat['id'])->first();
-       if(!$test){
-           \App\Models\Asset::create(['asset_id' => $cat['id'], 'name' => $cat['name'], 'ticker' => $cat['code']]);
-       }
-
-   }
-   return redirect('/');
+Route::get('/sync',function(){
+    \App\Models\Asset::syncDexieAssets();
+    \App\Models\Asset::syncTibetPairs();
+    \App\Models\Asset::syncDexieSwapTokens();
+    \App\Models\Asset::syncBalances();
+    return redirect('/');
 });
 
 Route::get('/bots', function(){

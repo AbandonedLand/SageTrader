@@ -9,5 +9,5 @@
     </div>
 @endsection
 @section('content')
-    @livewire('tibet-swap')
+    @livewire('market-order')
 @endsection

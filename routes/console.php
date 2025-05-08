@@ -12,6 +12,15 @@ Artisan::command('inspire', function () {
 
     //Run DCA Bot
     \App\Models\dca::RunSchedule();
+    // Check if offer went through
     \App\Models\Order::checkOrders();
+    // Sync CAT Balances
+    \App\Models\Asset::syncBalances();
 
-})->everyThirtySeconds();
+})->everyMinute();
+
+\Illuminate\Support\Facades\Schedule::call(function(){
+    \App\Models\Asset::syncDexieAssets();
+    \App\Models\Asset::syncTibetPairs();
+    \App\Models\Asset::syncDexieSwapTokens();
+})->everyFourHours();

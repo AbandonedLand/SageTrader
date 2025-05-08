@@ -339,8 +339,8 @@ return [
         ['header' => 'Strategies'],
         [
             'text' => 'Grid Trading',
-            'url' => '/soon',
-            'icon_color'=>'danger'
+            'url' => '/market/grid',
+            'icon_color'=>'success'
 
         ],
         [

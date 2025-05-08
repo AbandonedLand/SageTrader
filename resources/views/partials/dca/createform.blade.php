@@ -13,10 +13,10 @@
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <button wire:click="toggleShowAssets" class="input-group-text">
-                                <img src="{{$asset['icon']}}" style="height:24px;width:24px" alt="">
+                                <img src="{{$asset->icon()}}" style="height:24px;width:24px" alt="">
                             </button>
                         </div>
-                        <input type="text" class="form-control" disabled value="{{$asset['code']}}">
+                        <input type="text" class="form-control" disabled value="{{$asset->ticker}}">
 
                     </div>
 
@@ -61,7 +61,7 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text">
                             @if(!$is_buy && $asset)
-                                <img src="{{$asset['icon']}}" style="height:24px;width:24px" title="{{$asset['code']}}">
+                                <img src="{{$asset->icon()}}" style="height:24px;width:24px" title="{{$asset->ticker}}">
                             @else
                                 <img src="https://icons.dexie.space/xch.webp" style="height:24px;width:24px" title="XCH">
                             @endif
@@ -157,7 +157,7 @@
                 <div class="input-group-prepend">
                         <span class="input-group-text">
                             @if(!$is_buy && $asset)
-                                <img src="{{$asset['icon']}}" style="height:24px;width:24px" title="{{$asset['code']}}">
+                                <img src="{{$asset->icon()}}" style="height:24px;width:24px" title="{{$asset->ticker}}">
                             @else
                                 <img src="https://icons.dexie.space/xch.webp" style="height:24px;width:24px" title="XCH">
                             @endif
@@ -186,7 +186,7 @@
                 <div class="col-8">
                     @if($amount && $asset_id)
                     <p>
-                        You will spend {{$amount}} @if($is_buy)XCH @else {{$asset['code']}}@endif to acquire @if($is_buy) {{$asset['code']}} @else XCH at Market Price @endif every {{$time." ".$frequency}} @if($price_lt_gt && $price), if the price is {{$price_lt_gt." ".$price }}@endif @if($end_date), until {{$end_date}} @endif @if($end_date && $maxAmount) or @endif @if($maxAmount), until {{$maxAmount}} @if($is_buy)XCH @else {{$asset['code']}}@endif is spent @endif .
+                        You will spend {{$amount}} @if($is_buy)XCH @else {{$asset->ticker}}@endif to acquire @if($is_buy) {{$asset->ticker}} @else XCH at Market Price @endif every {{$time." ".$frequency}} @if($price_lt_gt && $price), if the price is {{$price_lt_gt." ".$price }}@endif @if($end_date), until {{$end_date}} @endif @if($end_date && $maxAmount) or @endif @if($maxAmount), until {{$maxAmount}} @if($is_buy)XCH @else {{$asset->ticker}}@endif is spent @endif .
                     </p>
                     @endif
                 </div>

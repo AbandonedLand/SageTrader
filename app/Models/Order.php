@@ -26,11 +26,11 @@ class Order extends Model
 
     public function updateAssetInfo(){
         if(!$this->requested_code){
-            $this->requested_code = \App\Dexie::getDexieAsset($this->requested_asset)['code'];
+            $this->requested_code = \App\Models\Asset::where('asset_id',$this->requested_asset)->first()->ticker;
             $this->save();
         }
         if(!$this->offered_code){
-            $this->offered_code = \App\Dexie::getDexieAsset($this->offered_asset)['code'];
+            $this->offered_code = \App\Models\Asset::where('asset_id',$this->offered_asset)->first()->ticker;
             $this->save();
         }
 
@@ -43,7 +43,7 @@ class Order extends Model
     public function requested(){
         return $this->belongsTo(Asset::class, 'requested_asset','asset_id');
     }
-    public function offfered(){
+    public function offered(){
         return $this->belongsTo(Asset::class, 'offered_asset','asset_id');
     }
 
@@ -76,7 +76,8 @@ class Order extends Model
         return $order;
     }
 
-    public function createSageOffer(?int $fee=0){
+    public function createSageOffer(?int $fee=0) : bool
+    {
         if($this->requested_asset == 'xch'){
             $requested = [
                 'xch'=>$this->requested_amount,
@@ -115,14 +116,14 @@ class Order extends Model
         $this->msg("Attempting to make offer for this order");
         $offer =  \App\ChiaWallet::makeOffer($requested,$offered,$fee);
         if($offer){
-            $this->status = 'offerCreated';
+            $this->is_created = true;
             $this->offer_id = $offer['offer_id'];
             $this->offer = $offer['offer'];
             $this->save();
             $this->msg("Offer with id: ".$offer['offer_id']." created");
             return true;
         } else {
-            $this->status = 'failed_to_create_offer';
+            $this->is_created = false;
             $this->save();
             $this->msg("Failed to create offer");
             return false;
@@ -130,23 +131,26 @@ class Order extends Model
 
     }
 
-    public function submitMarketOrder(){
+    public function submitMarketOrder() : bool
+    {
         $dexieResponse = \App\Dexie::submitMarketOrder($this->offer);
         if($dexieResponse['success']){
             $this->dexie_id = $dexieResponse['id'];
-            $this->status = 'submitted_to_dexie';
+            $this->is_submitted = true;
             $this->save();
+            $this->msg("Successfully submitted order to DexieSwap");
             return true;
 
         } else {
-            $this->status = 'failed_to_submit_dexie';
+            $this->is_submitted = false;
             $this->save();
+            $this->msg("Failed to submit order to DexieSwap");
             return false;
         }
     }
 
     public static function checkOrders(){
-        $orders = \App\Models\order::where('status','submitted_to_dexie')->get();
+        $orders = \App\Models\order::where('is_submitted',true)->whereNot('is_filled',true)->whereNot('is_cancelled',true)->get();
 
         if($orders->count() > 0){
             foreach($orders as $order){
@@ -159,20 +163,36 @@ class Order extends Model
         $status = \App\Dexie::getDexieOffer($this->dexie_id);
 
         if($status['status']==4){
-            $this->status = "Completed";
+            $this->is_filled = true;
             $this->save();
             $this->msg("This order has been completed");
         }
         if($status['status']==3){
-            $this->status = "Cancelled";
+            $this->is_cancelled = true;
             $this->save();
             $this->msg("This order has been cancelled");
         }
         if($status['status']==6){
-            $this->status = "Expired";
+            $this->is_cancelled = true;
             $this->save();
             $this->msg("The order has expired");
         }
+    }
+
+    public function status(){
+        if($this->is_filled){
+            return "Filled";
+        }
+        if($this->is_cancelled){
+            return "Cancelled";
+        }
+        if($this->is_submitted){
+            return "Submitted";
+        }
+        if($this->is_created){
+            return "Created";
+        }
+        return "Pending create";
     }
 
     public function submitOrder(){
@@ -186,6 +206,23 @@ class Order extends Model
         }
 
         return false;
+    }
+
+    public function offeredDisplayAmount(){
+        if(strtolower($this->offered_code)=='xch')
+        {
+            return round($this->offered_amount / 1000000000000,12);
+        }
+        return round($this->offered_amount / 1000,3);
+    }
+
+    public function requestedDisplayAmount(){
+        if(strtolower($this->requested_code)=='xch')
+        {
+            return round($this->requested_amount / 1000000000000,12);
+        }
+        return round($this->requested_amount / 1000,3);
+
     }
 
 }

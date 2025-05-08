@@ -71,8 +71,6 @@ class dca extends Model
             return false;
         }
 
-
-
         $quote = \App\Dexie::getDexieQuoteForAsset($this->asset_id,$this->amount,$this->buy_sell,true);
 
         if(!$quote){
@@ -106,7 +104,6 @@ class dca extends Model
                 if($order->submitOrder()){
                     $this->current_amount = $this->current_amount + $order->offered_amount;
                     $this->successful_orders ++;
-
                     $this->save();
                 } else {
                     $this->failed_orders ++;
@@ -114,7 +111,6 @@ class dca extends Model
                     $order->save();
                     $this->save();
                 }
-
             }
         } else {
             $this->msg('Failed to create order');
@@ -122,8 +118,6 @@ class dca extends Model
         $this->setNextRuntime();
         return true;
     }
-
-
 
     public function submitMarketOrder($offer){
         $dexieResponse = \App\Dexie::submitMarketOrder($offer);
@@ -133,11 +127,13 @@ class dca extends Model
             $this->current_amount = $this->current_amount + $this->amount;
             $this->next_run = \Carbon\Carbon::now()->addMinutes($this->buy_frequency);
             $this->save();
+
         } else {
             $this->last_run = \Carbon\Carbon::now();
             $this->failed_orders ++;
             $this->next_run = \Carbon\Carbon::now()->addMinutes($this->buy_frequency);
             $this->save();
+
         }
     }
 
