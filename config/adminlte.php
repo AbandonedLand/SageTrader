@@ -299,7 +299,11 @@ return [
     */
 
     'menu' => [
-
+        [
+            'text'=>'Fingerprints',
+            'url'=>'fingerprints',
+            'topnav_right'=>true,
+        ],
         [
             'text'=>'LogOut',
             'icon' => 'fa fa-sign-out-alt',
@@ -526,5 +530,5 @@ return [
     |
     */
 
-    'livewire' => false,
+    'livewire' => true,
 ];

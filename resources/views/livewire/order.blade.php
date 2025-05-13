@@ -9,11 +9,11 @@
                     <table class="table no-border">
                         <tr>
                             <th>Offered:</th>
-                            <td>{{$order->offeredDisplayAmount()." ".$order->offered_code}}</td>
+                            <td>{{$order->offeredDisplayAmount()}} <img src="{{ $order->offered->icon()}}" width="18px" height="18px"></td>
                         </tr>
                         <tr>
                             <th>Requested:</th>
-                            <td>{{$order->requestedDisplayAmount()." ".$order->requested_code}}</td>
+                            <td>{{$order->requestedDisplayAmount()}} <img src="{{ $order->requested->icon()}}" width="18px" height="18px"></td>
                         </tr>
                         <tr>
                             <th>Price:</th>

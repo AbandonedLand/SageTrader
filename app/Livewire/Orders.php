@@ -15,8 +15,13 @@ class Orders extends Component
     public $price_sort_desc = true;
 
     public function mount($orders){
-       $this->original_orders = $orders;
-       $this->orders = $orders;
+
+        $this->original_orders = $orders;
+        $this->orders = $orders;
+        $this->showFilled();
+        $this->showFilled();
+
+
     }
 
     public function showFilled(){

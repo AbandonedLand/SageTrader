@@ -29,7 +29,13 @@ class GridBot extends Component
     public $grid;
     public bool $fee_is_token_x;
 
+    public $y_placeholder;
+    public $x_placeholder;
+
+
     public function mount(){
+        $this->clearXPlaceholder();
+        $this->clearYPlaceholder();
         $this->showform = false;
         $this->showSelectX = false;
         $this->showSelectY = false;
@@ -41,8 +47,17 @@ class GridBot extends Component
         $this->token_x_asset_id = \App\Models\Asset::where('asset_id','xch')->first();
     }
 
+    public function clearXPlaceholder(){
+        $this->x_placeholder = 'Enter only one side.';
+    }
+    public function clearYPlaceholder(){
+        $this->y_placeholder = 'Enter only one side.';
+    }
     public function toggleFeeIsTokenX(){
         $this->fee_is_token_x = !$this->fee_is_token_x;
+        if($this->grid){
+            $this->buildGrid();
+        }
     }
 
     public function getPriceEstimate(){
@@ -88,9 +103,7 @@ class GridBot extends Component
         $this->showSelectY = false;
     }
 
-    public function closealert(){
-        return true;
-    }
+
 
     public function render()
     {
@@ -105,40 +118,37 @@ class GridBot extends Component
     }
 
     public function buildGrid(){
-        $gridBot = new \App\Models\GridBot();
-        $gridBot->token_x_asset_id = $this->token_x_asset_id->asset_id;
-        $gridBot->token_y_asset_id = $this->token_y_asset_id->asset_id;
-        $gridBot->token_x_reserve = $this->token_x_reserve;
-        $gridBot->token_y_reserve = $this->token_y_reserve;
-        $gridBot->upper_price = $this->upper_price;
-        $gridBot->lower_price = $this->lower_price;
-        $gridBot->tick_count = $this->steps;
-        $gridBot->liquidity_fee = $this->liquidity_fee;
 
-        $gridBot->start_price = $this->price;
         if($this->token_x_reserve){
             $this->buildGridTokenX();
+            $this->y_placeholder = $this->grid['total_reserve_y'] / $this->token_y_asset_id->decimals;
         }
         if($this->token_y_reserve){
             $this->buildGridTokenY();
+            $this->x_placeholder = $this->grid['total_reserve_x'] / $this->token_x_asset_id->decimals;
         }
 
-        dd($this->grid);
+        #dd($this->grid);
+
     }
 
     public function buildGridTokenX() :void
     {
-        $token_x_per_step = $this->token_x_reserve / $this->steps;
+        $token_x_per_step = ($this->token_x_reserve*2) / $this->steps;
         $price_per_step = (($this->upper_price - $this->lower_price)/$this->steps);
         $loop = 0;
         $total_reserve_x =0;
         $total_reserve_y =0;
         $grid = [];
+        $total_reserve_x = $this->token_x_reserve * $this->token_x_asset_id->decimals;
         while($loop < $this->steps){
             $price = ($this->lower_price) + ($loop * $price_per_step);
             $liquidity_fee = $this->liquidity_fee*$price;
-            $total_reserve_x += round($token_x_per_step * $this->token_x_asset_id->decimals);
-            $total_reserve_y += round($price * $token_x_per_step * $this->token_y_asset_id->decimals);
+            if($price < $this->price){
+                $total_reserve_y += round($price * $token_x_per_step * $this->token_y_asset_id->decimals);
+                $grid['start_at']=$loop;
+            }
+
             if($this->fee_is_token_x){
                 $bid_y_offered = round($price * $token_x_per_step * $this->token_y_asset_id->decimals,0);
                 $bid_x_requested = round($token_x_per_step*$this->token_x_asset_id->decimals,0);
@@ -156,7 +166,7 @@ class GridBot extends Component
                 $ask_y_requested = round($price * $token_x_per_step * $this->token_y_asset_id->decimals,0);
                 $ask_y_requested = $ask_y_requested + $fee_collected;
             }
-            $loop++;
+
             $grid['grid'][] = [
                 'loop'=>$loop,
                 'price_per_step'=>$price_per_step,
@@ -175,6 +185,7 @@ class GridBot extends Component
                 'ask_x_offered'=>(int)$ask_x_offered,
                 'ask_y_requested'=>(int)$ask_y_requested
             ];
+            $loop++;
             $grid['price'] = $this->price;
             $grid['total_reserve_x'] = (int)$total_reserve_x;
             $grid['total_reserve_y'] = (int)$total_reserve_y;
@@ -185,18 +196,22 @@ class GridBot extends Component
 
     public function buildGridTokenY() :void
     {
-        $token_y_per_step = $this->token_y_reserve / $this->steps;
+        $token_y_per_step = (2*$this->token_y_reserve) / ($this->steps-1);
 
-        $price_per_step = (($this->upper_price - $this->lower_price)/$this->steps);
+        $price_per_step = (($this->upper_price - $this->lower_price)/($this->steps-1));
         $loop = 0;
         $total_reserve_x =0;
         $total_reserve_y =0;
         $grid = [];
+        $total_reserve_y = $this->token_y_reserve * $this->token_y_asset_id->decimals;
         while($loop < $this->steps){
             $price = ($this->lower_price) + ($loop * $price_per_step);
             $liquidity_fee = $this->liquidity_fee*$price;
-            $total_reserve_x += round($token_y_per_step / $price * $this->token_x_asset_id->decimals);
-            $total_reserve_y += round($token_y_per_step * $this->token_y_asset_id->decimals);
+            if($price < $this->price){
+                $total_reserve_x += round($token_y_per_step / $price * $this->token_x_asset_id->decimals);
+                $grid['start_at']=$loop;
+            }
+
             if($this->fee_is_token_x){
                 $bid_y_offered = round($token_y_per_step * $this->token_y_asset_id->decimals,0);
                 $x = round($token_y_per_step / $price * $this->token_x_asset_id->decimals,0);
@@ -212,7 +227,6 @@ class GridBot extends Component
                 $ask_y_requested = $y + $fee_collected;
                 $ask_x_offered = round($token_y_per_step / $price * $this->token_x_asset_id->decimals, 0);
             }
-            $loop++;
 
             $grid['grid'][] = [
                 'loop'=>$loop,
@@ -230,11 +244,31 @@ class GridBot extends Component
                 'ask_x_offered'=>(int)$ask_x_offered,
                 'ask_y_requested'=>(int)$ask_y_requested,
             ];
+            $loop++;
             $grid['price'] = $this->price;
             $grid['total_reserve_x'] = (int)$total_reserve_x;
             $grid['total_reserve_y'] = (int)$total_reserve_y;
         }
         $this->grid = $grid;
+    }
+
+    public function createBot(){
+        $gridBot = new \App\Models\GridBot();
+        $gridBot->token_x_asset_id = $this->token_x_asset_id->asset_id;
+        $gridBot->token_y_asset_id = $this->token_y_asset_id->asset_id;
+        $gridBot->token_x_reserve = $this->grid['total_reserve_x'];
+        $gridBot->token_y_reserve = $this->grid['total_reserve_y'];
+        $gridBot->upper_price = $this->upper_price;
+        $gridBot->lower_price = $this->lower_price;
+        $gridBot->tick_count = $this->steps;
+        $gridBot->fee_collected = 0;
+        $gridBot->liquidity_fee = $this->liquidity_fee;
+        $gridBot->start_price = $this->price;
+        $gridBot->grid = $this->grid;
+        $gridBot->save();
+        $gridBot->bootbot();
+        $this->showform = false;
+
     }
 
 }

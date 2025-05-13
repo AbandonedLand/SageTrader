@@ -27,21 +27,28 @@ class Asset extends Model
         }
     }
 
-    public static function syncDexieAssets() : void
+    public static function syncDexieAssets() : bool
     {
         $cats = \App\Dexie::getDexieCatAssets();
-
-        foreach($cats as $cat) {
-            $test = \App\Models\Asset::where('asset_id',$cat['id'])->first();
-            if(!$test){
-                \App\Models\Asset::create(['asset_id' => $cat['id'], 'name' => $cat['name'], 'ticker' => $cat['code']]);
+        if($cats){
+            foreach($cats as $cat) {
+                $test = \App\Models\Asset::where('asset_id',$cat['id'])->first();
+                if(!$test){
+                    \App\Models\Asset::create(['asset_id' => $cat['id'], 'name' => $cat['name'], 'ticker' => $cat['code']]);
+                }
             }
+            return true;
         }
+        return false;
+
     }
 
 
     public static function syncDexieSwapTokens(){
         $tokens = \App\Dexie::getDexieSwapAssets()['tokens'];
+        if(!$tokens){
+            return false;
+        }
         foreach($tokens as $token){
             $test = \App\Models\Asset::where('asset_id',$token['id'])->first();
             if($test){
@@ -49,21 +56,26 @@ class Asset extends Model
                 $test->save();
             }
         }
+        return true;
     }
 
-    public static function syncTibetPairs() : void
+    public static function syncTibetPairs() : bool
     {
         $uri = "https://api.v2.tibetswap.io/pairs?limit=10000";
         $tokens = Http::get($uri)->json();
-
-        foreach($tokens as $token){
-            $toUpdate = \App\Models\Asset::where('asset_id',$token['asset_id'])->first();
-            if($toUpdate){
-                $toUpdate->tibetswap_liquidity_asset_id = $token['liquidity_asset_id'];
-                $toUpdate->tibetswap_pair_id = $token['launcher_id'];
-                $toUpdate->save();
+        if($tokens){
+            foreach($tokens as $token){
+                $toUpdate = \App\Models\Asset::where('asset_id',$token['asset_id'])->first();
+                if($toUpdate){
+                    $toUpdate->tibetswap_liquidity_asset_id = $token['liquidity_asset_id'];
+                    $toUpdate->tibetswap_pair_id = $token['launcher_id'];
+                    $toUpdate->save();
+                }
             }
+            return true;
         }
+        return false;
+
 
     }
 

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('fingerprints', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->integer('fingerprint');
             $table->boolean('is_approved')->default(false);
 

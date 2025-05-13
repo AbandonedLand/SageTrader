@@ -18,14 +18,14 @@ class dca extends Model
         $log = \App\Models\log::create(['message' => $message]);
         $this->log()->save($log);
     }
-
+    public function log(){
+        return $this->morphMany('App\Models\Log', 'logable');
+    }
     public function orders(){
         return $this->morphMany('App\Models\Order', 'orderable');
     }
 
-    public function log(){
-        return $this->morphMany('App\Models\Log', 'logable');
-    }
+
 
     public function setNextRuntime(){
         $next = \Carbon\Carbon::now()->addMinutes($this->buy_frequency);

@@ -4,11 +4,9 @@ namespace App;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 
-
-class ChiaWallet
+class SageWallet
 {
     protected $client;
     public function __construct()
@@ -63,12 +61,12 @@ class ChiaWallet
     }
 
     public static function get_sync_status(){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         return $wallet->post('get_sync_status',[],true);
     }
 
     public static function getFingerprint(){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         $fingerprint = $wallet->post('/get_key',[],true);
 
         if(isset($fingerprint['key'])){
@@ -79,34 +77,34 @@ class ChiaWallet
 
 
     public static function getOffers(){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         return $wallet->post('/get_offers',[],true)['offers'];
 
     }
     public static function getOffer($offer_id){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         return $wallet->post('/get_offer',['offer_id'=>$offer_id],true);
     }
 
     public static function deleteOffer($offer_id){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         return $wallet->post('/delete_offer',['offer_id'=>$offer_id],true);
 }
 
     public static function login($fingerprint){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         $login = $wallet->post('/login', ['fingerprint' => $fingerprint], true);
         return redirect('/dashboard');
     }
 
     public static function getCats(){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         $cats = $wallet->post('/get_cats', [], true);
         return $cats['cats'];
     }
 
     public static function getCat($asset_id){
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         return $wallet->post('/get_cat', ['asset_id' => $asset_id], true)['cat'];
     }
 
@@ -114,10 +112,11 @@ class ChiaWallet
     {
         $fingerprint = self::getFingerprint();
         $approved = \App\Models\Fingerprint::where('fingerprint',$fingerprint)->where('is_approved',true)->get();
-        if(!$approved > 0){
-            Session::flash('error','Fingerprint not approved');
+        if(!$approved){
             return false;
         }
+
+
 
         $offer = [
             'requested_assets' => $requested_assets,
@@ -132,7 +131,7 @@ class ChiaWallet
             $offer['receiver_address'] = $receiver_address;
         }
 
-        $wallet = new ChiaWallet();
+        $wallet = new SageWallet();
         $createdOffer =  $wallet->post('/make_offer', $offer, true);
         if($createdOffer){
             return $createdOffer;

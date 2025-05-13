@@ -9,11 +9,30 @@ class Dexie
     public $base_uri = 'https://api.dexie.space/v1/';
 
 
+
     /**
      * Create a new class instance.
      */
     public function __construct()
     {
+
+    }
+
+
+
+    public static function checkOffersBatch(array $offer_ids){
+        $uri = 'https://api.dexie.space/v1/offersBatch';
+        $payload = ['ids' => $offer_ids];
+        return Http::post($uri, $payload);
+    }
+
+    public static function submitOffer($offer){
+        $payload = [
+            'offer'=>$offer,
+            'claim_rewards'=>true
+        ];
+        $uri = 'https://api.dexie.space/v1/offers';
+        return Http::post($uri, $payload)->json();
 
     }
 

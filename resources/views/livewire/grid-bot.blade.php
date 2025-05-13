@@ -52,14 +52,7 @@
                 </div>
             </div>
         @elseif($showform)
-            @session('error')
-                    <div class="alert alert-warning alert-dismissible fade show mt-4" role="alert">
-                        <strong>Error!</strong> {{$value}}
-                        <button wire:click='closealert' type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-            @endsession
+
             <div class="card mt-4">
                 <div class="card-header text-center">
                     <h2>Create a Trading Grid</h2>
@@ -168,12 +161,12 @@
                         <div class="col-4">
                             @if($token_y_asset_id) <span class="text-muted mt-1 float-right text-sm">max: {{$token_y_asset_id->displayMax()}} </span>@endif
                             <label for="" class="form-label">Token Y Investment Amount</label>
-                            <input type="text" class="form-control" wire:click="clearX" wire:model.live="token_y_reserve" placeholder="Enter only one side.">
+                            <input type="text" class="form-control" wire:click="clearX" wire:model.live="token_y_reserve" wire:keyup.debounce.300ms="buildGrid" placeholder="{{$y_placeholder}}">
                         </div>
                         <div class="col-4 offset-1">
                             @if($token_x_asset_id) <span class="text-muted mt-1 float-right text-sm">max: {{$token_x_asset_id->displayMax()}} </span>@endif
                             <label for="" class="form-label">Token X Investment Amount</label>
-                            <input type="text" class="form-control" wire:click="clearY" wire:model.live="token_x_reserve" placeholder="Enter only one side.">
+                            <input type="text" class="form-control" wire:click="clearY" wire:model.live="token_x_reserve" wire:keyup.debounce.300ms="buildGrid" placeholder="{{$x_placeholder}}">
                         </div>
                         <div class="col-2 offset-1">
                             <label class="form-label">Step count</label>
@@ -182,12 +175,46 @@
                     </div>
                     <div class="row">
                         <div class="col-12">
-                            <button class="btn" wire:click="buildGrid">build</button>
+                            <button class="btn btn-success form-control mt-4" wire:click="createBot">Create Bot</button>
                         </div>
                     </div>
                 </div>
 
+                @if($grid)
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Index</th>
+                            <th>Price</th>
+                            <th>Bid</th>
+                            <th>Ask</th>
+                            <th>Fee Collected / Trade</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($grid['grid'] as $row)
+                            <tr>
+                                <td>{{$row['loop']}}</td>
+                                <td>{{number_format($row['price'],3)}}</td>
+                                <td> {{($row['bid_y_offered']/$this->token_y_asset_id->decimals)}} <img src="{{$token_y_asset_id->icon()}}" width="18px" height="18px"> => {{($row['bid_x_requested'] / $token_x_asset_id->decimals)}}
+                                    <img src="{{$token_x_asset_id->icon()}}" width="18px" height="18px" alt="">
+                                </td>
+                                <td> {{($row['ask_y_requested']/$this->token_y_asset_id->decimals)}} <img src="{{$token_y_asset_id->icon()}}" width="18px" height="18px"> => {{($row['ask_x_offered'] / $token_x_asset_id->decimals)}}
+                                    <img src="{{$token_x_asset_id->icon()}}" width="18px" height="18px" alt="">
+                                </td>
+                                <td>
+                                    @if($fee_is_token_x)
+                                        {{number_format(($row['fee_collected']/$token_x_asset_id->decimals),12)}} <img src="{{$token_x_asset_id->icon()}}" width="18px" height="18px" alt="">
+                                    @else
+                                        {{number_format(($row['fee_collected']/$token_y_asset_id->decimals),3)}} <img src="{{$token_y_asset_id->icon()}}" width="18px" height="18px" alt="">
+                                    @endif
+                                </td>
+                            </tr>
 
+                        @endforeach
+                        </tbody>
+                    </table>
+                @endif
             </div>
         @else
             <div class="card mt-4">
@@ -196,16 +223,53 @@
                     <h1>Grid Bot</h1>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header">
-
+            @if($gridBots)
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Token Y</th>
+                                            <th>Token X</th>
+                                            <th>Lower Price</th>
+                                            <th>Upper Price</th>
+                                            <th>Fee Collected / Trade</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($gridBots as $bot)
+                                        <tr>
+                                            <td>{{$bot->id}}</td>
+                                            <td>{{($bot->token_y_reserve/$bot->tokenY->decimals)}} <img src="{{$bot->tokenY->icon()}}" width="18px" height="18px" alt=""></td>
+                                            <td>{{($bot->token_x_reserve/$bot->tokenX->decimals)}} <img src="{{$bot->tokenX->icon()}}" width="18px" height="18px" alt=""></td>
+                                            <td>{{$bot->lower_price}}</td>
+                                            <td>{{$bot->upper_price}}</td>
+                                            <td>{{$bot->fee_collected}}
+                                            @if($bot->fee_is_token_x)
+                                                <img src="{{$bot->tokenX->icon()}}" width="18px" height="18px" alt="">
+                                                @else
+                                                <img src="{{$bot->tokenY->icon()}}" width="18px" height="18px" alt="">
+                                            @endif
+                                            </td>
+                                            <td>{{$bot->is_active ? "Active" : "Inactive"}}</td>
+                                            <td><div class="btn-group">
+                                                    <button class="btn btn-danger">Disable</button>
+                                                    <a href="/market/grid/{{$bot->id}}" class="btn btn-info">View</a>
+                                                </div></td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @endif
         @endif
         </div>
     </div>

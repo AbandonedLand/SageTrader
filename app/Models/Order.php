@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
 
+    public $tibetQuote = null;
+    public $dexieQuote = null;
     protected $fillable = [
         'requested_asset',
         'requested_code',
@@ -21,6 +23,11 @@ class Order extends Model
         'dexie_id',
         'status',
         'initiated_by'
+    ];
+
+
+    protected $casts = [
+        'meta_data' => 'array',
     ];
 
 
@@ -131,6 +138,23 @@ class Order extends Model
 
     }
 
+    public function submitOffer(){
+        $dexieResponse = \App\Dexie::submitOffer($this->offer);
+        if($dexieResponse['success']){
+            $this->dexie_id = $dexieResponse['id'];
+            $this->is_submitted = true;
+            $this->save();
+            $this->msg("Successfully submitted order to Dexie");
+            return true;
+
+        } else {
+            $this->is_submitted = false;
+            $this->save();
+            $this->msg("Failed to submit order to Dexie");
+            return false;
+        }
+    }
+
     public function submitMarketOrder() : bool
     {
         $dexieResponse = \App\Dexie::submitMarketOrder($this->offer);
@@ -159,6 +183,50 @@ class Order extends Model
         }
     }
 
+
+    public function checkAgainstTibetSwap(){
+        if($this->requested->asset_id ==="xch" || $this->offered->asset_id ==='xch') {
+            // If Requested is Swappable
+            if ($this->requested->tibetswap_pair_id) {
+                $this->msg("Checking against Tibetswap");
+                $quote = \App\TibetSwap::getTibetQuoteForAsset($this->requested->asset_id, $this->requested_amount, 'buy', false);
+                $diff = $this->offered_amount - $quote['amount_in'];
+                if ($diff > 0) {
+                    $this->msg("TibetSwap will accept this offer.  Submitting to TibetSwap");
+                    $tibetSwapResponse = \App\TibetSwap::submitOffer($this->requested->tibetswap_pair_id, $this->offer, \App\TibetAction::SWAP, $diff);
+                    if ($tibetSwapResponse['success']) {
+                        $this->msg("Successfully submitted offer to TibetSwap");
+                        $this->dexie_id = $tibetSwapResponse['offer_id'];
+                        $this->is_submitted = true;
+                        $this->save();
+                    } else {
+                        $this->msg("Failed to submit offer to TibetSwap");
+                    }
+                }
+
+            }
+            // If Offered is Swappable
+            if ($this->offered->tibetswap_pair_id) {
+                $this->msg("Checking against Tibetswap");
+                $quote = \App\TibetSwap::getTibetQuoteForAsset($this->offered->asset_id, $this->offered_amount, 'sell', true);
+                $diff = $this->requested_amount - $quote['amount_out'];
+                if ($diff > 0) {
+                    $this->msg("TibetSwap will accept this offer.  Submitting to TibetSwap");
+                    $tibetSwapResponse = \App\TibetSwap::submitOffer($this->offered->tibetswap_pair_id, $this->offer, \App\TibetAction::SWAP, $diff);
+                    if ($tibetSwapResponse['success']) {
+                        $this->msg("Successfully submitted offer to TibetSwap");
+                        $this->dexie_id = $tibetSwapResponse['offer_id'];
+                        $this->is_submitted = true;
+                        $this->save();
+                    } else {
+                        $this->msg("Failed to submit offer to TibetSwap");
+                    }
+                }
+            }
+        }
+    }
+
+
     public function checkStatus(){
         $status = \App\Dexie::getDexieOffer($this->dexie_id);
 
@@ -166,6 +234,8 @@ class Order extends Model
             $this->is_filled = true;
             $this->save();
             $this->msg("This order has been completed");
+            $this->handleAccept();
+
         }
         if($status['status']==3){
             $this->is_cancelled = true;
@@ -176,6 +246,24 @@ class Order extends Model
             $this->is_cancelled = true;
             $this->save();
             $this->msg("The order has expired");
+        }
+    }
+
+    public function handleAccept(){
+        // Run GridBot Rules.
+        if($this->initiated_by === "GridBot" && $this->is_filled && !isset($this->meta_data['processed'])){
+            $metadata = $this->meta_data;
+            $grid = $this->orderable()->first();
+            $ask = $grid->makeOrder($metadata['next']['ask']['side'],$metadata['next']['ask']['index']);
+            if($ask){
+                $ask->createSageOffer();
+                $ask->submitOrder();
+            }
+            $bid = $grid->makeOrder($metadata['next']['bid']['side'],$metadata['next']['bid']['index']);
+            if($bid){
+                $bid->createSageOffer();
+                $bid->submitOrder();
+            }
         }
     }
 
@@ -196,16 +284,20 @@ class Order extends Model
     }
 
     public function submitOrder(){
-        if($this->initiated_by === "DCABot"){
-            $this->msg("Submitting offer to DexieSwap");
-            return $this->submitMarketOrder();
-        }
-        if($this->initiated_by === "MarketOrder"){
-            $this->msg("Submitting offer to MarketOrder");
-            return $this->submitMarketOrder();
+        # Check if TibetSwap will take it.
+        $this->checkAgainstTibetSwap();
+
+        if(!$this->is_submitted){
+            # TibetSwap didn't take it.
+
+            if($this->initiated_by === "DCABot" || $this->initiated_by === "MarketOrder"){
+                $this->msg("Submitting offer to DexieSwap");
+                return $this->submitMarketOrder();
+            }
+            return $this->submitOffer();
         }
 
-        return false;
+        return true;
     }
 
     public function offeredDisplayAmount(){

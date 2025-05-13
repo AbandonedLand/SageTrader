@@ -25,7 +25,7 @@ return new class extends Migration
             $table->decimal('liquidity_fee');
             $table->string('fee_collected');
             $table->boolean('fee_is_token_x')->default(true);
-
+            $table->json('grid');
 
             $table->timestamps();
         });

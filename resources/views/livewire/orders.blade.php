@@ -8,9 +8,6 @@
             </div>
             <div class="card">
                 <div class="card-body">
-                    <button class="btn btn-primary">
-                        All
-                    </button>
                     <button @class([
                         'btn',
                         'btn-success'=>$is_filled,
@@ -18,6 +15,7 @@
                     ]) wire:click="showFilled">
                         {{$is_filled ? "Filled Orders" : "Open Orders" }}
                     </button>
+
                 </div>
             </div>
             <div class="card">

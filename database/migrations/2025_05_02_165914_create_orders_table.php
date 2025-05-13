@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('offered_asset');
             $table->string('offered_code')->nullable();
             $table->integer('offered_amount');
+            $table->integer('fee_collected')->nullable();
+            $table->string('fee_collected_asset')->nullable();
             $table->integer('market_fee_paid')->default(0);
             $table->integer('transaction_fee_paid')->default(0);
             $table->decimal('price');
@@ -31,6 +33,7 @@ return new class extends Migration
             $table->boolean('is_filled')->default(false);
             $table->string('previous_required_offer')->nullable();
             $table->string('initiated_by');
+            $table->json('meta_data')->nullable();
             $table->timestamps();
         });
     }
