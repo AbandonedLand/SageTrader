@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use Native\Laravel\Facades\MenuBar;
 use Native\Laravel\Facades\Window;
 use Native\Laravel\Contracts\ProvidesPhpIni;
 
@@ -15,15 +14,11 @@ class NativeAppServiceProvider implements ProvidesPhpIni
     public function boot(): void
     {
         Window::open()
-            ->width(1200)
-            ->minWidth(1100)
-            ->height(700)
-            ->showDevTools(false)
-            ->rememberState(true);
-
-
+        ->title('SageTrader')
+        ->width(1280)
+        ->height(720)
+        ->showDevTools(false);
     }
-
 
     /**
      * Return an array of php.ini directives to be set.
