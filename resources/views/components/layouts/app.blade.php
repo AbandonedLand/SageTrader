@@ -39,11 +39,24 @@
                 <x-menu-item title="Dashboard" icon="o-squares-2x2" link="/" />
 
                 <x-menu-sub title="Bots" icon="o-cpu-chip">
-                    <x-menu-item title="Wifi" icon="o-wifi" link="####" />
+
                     <x-menu-item title="Archives" icon="o-archive-box" link="####" />
                 </x-menu-sub>
 
-                <x-menu-item title="Settings" icon="o-cog-6-tooth" link="/setup" />
+
+                <x-menu-sub title="Settings" icon="o-cog-6-tooth" link="/bob">
+                    <x-menu-item title="Connect Sage" icon="o-cog-6-tooth" link="/setup" />
+
+                    <x-menu-sub title="Fingerprints" icon="o-finger-print" >
+                        <x-menu-item title="All" link="/fingerprint" />
+                        @foreach(\App\Models\Fingerprint::all() as $fp)
+
+                        @if($fp->is_authorized)
+                            <x-menu-item title="{{ $fp->name }}" icon-classes="text-green-500" icon="o-finger-print" link="/fingerprint/{{ $fp->id }}" />
+                        @endif
+                    @endforeach
+                    </x-menu-sub>
+                </x-menu-sub>
             </x-menu>
         </x-slot:sidebar>
 
