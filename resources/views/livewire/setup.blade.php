@@ -77,16 +77,26 @@ new class extends Component {
 <div>
     <x-steps wire:model="step" class="border-y border-base-content/10 my-5 py-5">
         <x-step step="1" text="Enable Sage RPC">
-            <p class="font-bold mb-2 text-xl">Open Sage Wallet</p>
-            <img src="/img/sagerpc.png" class="my-4" alt="Sage RPC">
-            <ol>
+            <x-card
+                title="Configure Sage Wallet to allow RPC"
+            >
 
-                <li>1. Click Settings</li>
-                <li>2. Click Start</li>
-                <li>3. Turn on Run on Startup</li>
-            </ol>
-            <x-button label="Previous" wire:click="prev"/>
-            <x-button label="Next" class="btn-primary" wire:click="next"/>
+                <img src="/img/sagerpc.png" class="my-4" style="height:350px" alt="Sage RPC">
+                <ol>
+
+                    <li>1. Click Settings</li>
+                    <li>2. Click Start</li>
+                    <li>3. Turn on Run on Startup</li>
+                </ol>
+                <hr>
+                <div class="flex justify-between mt-4 ">
+                    <x-button label="Previous" wire:click="prev"/>
+                    <x-button label="Next" class="btn-primary" wire:click="next"/>
+                </div>
+            </x-card>
+
+
+
         </x-step>
         <x-step step="2" text="Connect to Sage">
 
@@ -98,28 +108,38 @@ new class extends Component {
                     <p>{{$key}}</p>
                 </x-card>
             @endif
-
-            @if(!$crt && !$key)
-            <x-button label="Lookup RPC SSL Key" class="btn-secondary" wire:click="lookup"/>
-            @else
-            <x-button label="Load Keys into Sage Trader" class="btn-secondary" wire:click="acceptssl"/>
-            @endif
+            <x-card
+                title="Allow Access to RPC SSL"
+            >
+                @if(!$crt && !$key)
+                    <x-button label="Lookup RPC SSL Key" class="btn-primary" wire:click="lookup"/>
+                @else
+                    <x-button label="Load Keys into Sage Trader" class="btn-primary" wire:click="acceptssl"/>
+                @endif
+            </x-card>
         </x-step>
         <x-step step="3" text="Approve Fingerprint(s)" >
+            <x-card
+                title="Approve Fingerprints for SageTrader" >
+                @if($step===3)
+                    <livewire:wallet.fingerprints />
+                    <div class="flex justify-end">
+                        <x-button
+                            label="Next"
+                            class="btn-primary px-6"
+                            wire:click="next"
 
-        </x-step>
-        <x-step step="3" text="Import Dexie Assets">
-            <x-form wire:submit="saveFingerprints">
-                @if($sageWallet)
-                    <x-choices label="Approve Keys"
-                               wire:model.live="fingerprint_ids"
-                               :options="$fingerprints"
-                               allow-all />
+                        >
+
+                        </x-button>
+                    </div>
 
                 @endif
-                <x-button label="Approve Fingerprint(s)" class="btn-primary" wire:click="saveFingerprints"/>
-            </x-form>
 
+            </x-card>
+        </x-step>
+        <x-step step="4" text="Import Dexie Assets">
+            <livewire:dexie.syncassetsbutton />
 
         </x-step>
     </x-steps>

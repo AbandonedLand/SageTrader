@@ -16,6 +16,25 @@ class SageWallet extends Model
         'approved_fingerprints'=>'array'
     ];
 
+    public function syncTokensBalances(){
+        $xchbalance = $this->get_sync_status();
+        $xchtoken = \App\Models\Asset::where('asset_id','xch')->first();
+        $xchtoken->balance = $xchbalance['balance'];
+        $xchtoken->save();
+        $cats = $this->get_cats();
+        foreach($cats as $cat){
+            if($cat){
+                $asset = \App\Models\Asset::where('asset_id',$cat['asset_id'])->first();
+                if($asset){
+                    $asset->balance = $cat['balance'];
+                    $asset->save();
+                }
+
+            }
+
+        }
+    }
+
     public function connect() :void
     {
 
@@ -47,9 +66,12 @@ class SageWallet extends Model
 
     public function get_sync_status(){
 
-        return $this->post('get_sync_status',[],true)['keys'];
+        return $this->post('get_sync_status',[],true);
     }
 
+    public function get_cats(){
+        return $this->post('get_cats',[],true)['cats'];
+    }
 
     public function get_keys(){
         $keys = \App\Models\Fingerprint::all();

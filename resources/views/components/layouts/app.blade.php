@@ -40,22 +40,22 @@
 
                 <x-menu-sub title="Bots" icon="o-cpu-chip">
 
-                    <x-menu-item title="Archives" icon="o-archive-box" link="####" />
+                    <x-menu-item title="Dollar Cost Average (DCA)" icon="carbon.chart-average" link="/bots/dca" />
+                    <x-menu-item title="Grid" icon="carbon.chart-high-low" link="/bots/grid" />
                 </x-menu-sub>
 
 
                 <x-menu-sub title="Settings" icon="o-cog-6-tooth" link="/bob">
                     <x-menu-item title="Connect Sage" icon="o-cog-6-tooth" link="/setup" />
 
-                    <x-menu-sub title="Fingerprints" icon="o-finger-print" >
-                        <x-menu-item title="All" link="/fingerprint" />
-                        @foreach(\App\Models\Fingerprint::all() as $fp)
+                    <x-menu-item title="Approve Fingerprints" icon="o-finger-print" link="/fingerprints" />
+                    <x-menu-item
+                        title="Sync TibetSwap"
+                        link="/setup/synctibetswap"
+                    ></x-menu-item>
 
-                        @if($fp->is_authorized)
-                            <x-menu-item title="{{ $fp->name }}" icon-classes="text-green-500" icon="o-finger-print" link="/fingerprint/{{ $fp->id }}" />
-                        @endif
-                    @endforeach
-                    </x-menu-sub>
+
+
                 </x-menu-sub>
             </x-menu>
         </x-slot:sidebar>
